@@ -121,7 +121,7 @@ function editor(){
   E.list.forEach((c,ci)=>{
     h+=`<div class="cb"><h3><span>${esc(c.e)} ${esc(c.n)}</span><button class="btn g" onclick="mvC(${ci},-1)">↑</button><button class="btn g" onclick="mvC(${ci},1)">↓</button><button class="btn g" onclick="renC(${ci})">이름</button><button class="btn r" onclick="delC(${ci})">삭제</button></h3>`;
     c.v.forEach((v,vi)=>{h+=`<div class="row"><span>${esc(v.t)}</span><button onclick="mvV(${ci},${vi},-1)">↑</button><button onclick="mvV(${ci},${vi},1)">↓</button><button onclick="delV(${ci},${vi})">✕</button></div>`});
-    h+=`<textarea id="L${ci}" rows="2" placeholder="유튜브 링크 (여러 개는 줄바꿈으로)" style="width:100%;margin-top:6px;border:1px solid #bcd;border-radius:10px;padding:8px;font:inherit"></textarea><button class="btn" style="margin-top:4px" onclick="addV(${ci},this)">영상 추가</button></div>`;
+    h+=`<textarea id="L${ci}" rows="2" placeholder="유튜브 링크 (여러 개는 줄바꿈으로)" style="width:100%;margin-top:6px;border:1px solid #bcd;border-radius:10px;padding:8px;font:inherit"></textarea><button class="btn r" style="margin-top:4px" onclick="addV(${ci},this)">영상 추가</button></div>`;
   });
   return h;
 }
