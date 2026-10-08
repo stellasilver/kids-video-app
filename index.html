@@ -48,6 +48,7 @@ button{font:inherit;cursor:pointer}
 .tabs{display:flex;gap:6px;margin-bottom:12px}
 .tabs button{flex:1;padding:16px 4px;min-height:58px;font-size:15px;font-weight:bold;line-height:1.25;border:0;border-radius:12px;background:#e3efe6}
 .tabs .on{background:var(--pri);color:#fff}
+.dt{margin:2px 0 8px 12px;font-size:14px}.dt summary{cursor:pointer;color:#2F6B47;padding:4px 0}
 .sub{display:flex;gap:6px;margin:4px 0 10px}
 .sub button{padding:5px 12px;font-size:13px;border:1px solid #9cc7aa;border-radius:999px;background:#fff;color:#2F6B47}
 .sub .on{background:#2F8F5B;border-color:#2F8F5B;color:#fff}
@@ -79,15 +80,16 @@ const ld=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}ca
 const sv=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const SEED=[{id:'ss',e:'🎵',n:'슈심송',v:[{i:'BTlmy8LZO_8',t:'10 Apples On My Head'}]},{id:'nb',e:'🔢',n:'넘버블럭스',v:[]}];
-let def=SEED,mine=ld('mine',[]),hist=ld('hist',[]),hp='0',sess=null,endT=null,lim=ld('lim',0),use=ld('use',{}),cur=null,E=null,tab='m',P=null,timer=null,ytReady=false;
+let def=SEED,mine=ld('mine',[]),hist=ld('hist',[]),hid=ld('hid',[]),vo=ld('vo',{}),ro=[],hp='0',sess=null,endT=null,lim=ld('lim',0),use=ld('use',{}),cur=null,E=null,tab='m',P=null,timer=null,ytReady=false;
 const today=()=>new Date().toLocaleDateString('sv');
 const used=()=>use[today()]||0;
 const full=()=>lim>0&&used()>=lim*60;
-const all=()=>[...def.map(c=>({...c,pub:1})),...mine];
+const vis=c=>{const w=vo[c.id]||{},h=w.h||[],o=w.o||[],k=x=>{const j=o.indexOf(x.i);return j<0?1e6:j};return c.v.filter(x=>!h.includes(x.i)).sort((a,b)=>k(a)-k(b))};
+const all=()=>[...def.filter(c=>!hid.includes(c.id)).map(c=>({...c,v:vis(c),pub:1})),...mine];
 const vidId=s=>{const m=String(s).match(/(?:v=|youtu\.be\/|shorts\/|embed\/|live\/)([\w-]{11})/);return m?m[1]:null};
 const fmt=s=>Math.floor(s/60)+'분';
 
-fetch('default-categories.json?'+Date.now()).then(r=>r.json()).then(d=>{if(Array.isArray(d)){def=d;render()}}).catch(()=>{});
+fetch('default-categories.json?'+Date.now()).then(r=>r.json()).then(d=>{if(Array.isArray(d)){def=d.filter(c=>c&&c.id&&Array.isArray(c.v));render()}}).catch(()=>{});
 
 function render(){
   const cs=all();
@@ -118,12 +120,29 @@ function openSet(t){
     h+=`<p>하루 시청 한도 (5분 단위)</p><div class="step"><button onclick="setLim(${lim-5})">−</button><b>${lim?lim+'분':'제한 없음'}</b><button onclick="setLim(${lim+5})">＋</button></div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:10px">${[0,15,30,45,60,90].map(m=>`<button class="btn g" onclick="setLim(${m})">${m?m+'분':'없음'}</button>`).join('')}</div>
     <p>오늘 본 시간: <b>${fmt(used())}</b> <button class="btn g" onclick="use[today()]=0;sv('use',use);openSet()">오늘 시간 초기화</button></p>`;
-  }else if(tab==='m'){E={list:mine,save:()=>sv('mine',mine)};h+=editor(false)}
+  }else if(tab==='m'){E={list:mine,save:()=>sv('mine',mine)};h+=recHtml()+'<h3 style="margin:14px 0 6px;font-size:16px">내 카테고리</h3>'+editor()}
   else h+=histHtml();
   h+=`<div style="margin-top:12px"><button class="btn" style="width:100%" onclick="closeMod()">닫기</button></div>`;
   $('#box').innerHTML=h;$('#mod').style.display='flex';
 }
 function setLim(m){lim=Math.max(0,Math.min(300,m));sv('lim',lim);openSet()}
+function recHtml(){
+  let h='<div class="cb"><b>추천 카테고리</b> <small>(관리자가 준비한 목록)</small>';
+  if(!def.length)h+='<p><small>아직 추천 카테고리가 없어요</small></p>';
+  def.forEach(c=>{const off=hid.includes(c.id);
+    h+=`<div class="row"><span>${esc(c.e)} ${esc(c.n)} <small>(${c.v.length}개)</small></span><small>${off?'숨김':'사용 중'}</small><button class="btn ${off?'':'r'}" ${off?'style="background:#4CAF7A"':''} onclick="togRec('${c.id}')">${off?'추가':'삭제'}</button></div>`;
+    if(!off){const v=vis(c),nh=c.v.length-v.length;
+      h+=`<details class="dt" ${ro.includes(c.id)?'open':''} ontoggle="togOpen('${c.id}',this.open)"><summary>영상 ${v.length}개 관리 (삭제·순서)</summary>`
+        +v.map((x,i)=>`<div class="row"><span>${esc(x.t)}</span><button onclick="mvRV('${c.id}',${i},-1)">↑</button><button onclick="mvRV('${c.id}',${i},1)">↓</button><button onclick="delRV('${c.id}','${x.i}')">✕</button></div>`).join('')
+        +(nh?`<button class="btn g" style="margin-top:6px" onclick="resRV('${c.id}')">숨긴 영상 ${nh}개 복원</button>`:'')+'</details>';}
+  });
+  return h+'<small>삭제해도 이 기기에서만 숨겨지고, 언제든 다시 추가·복원할 수 있어요.</small></div>';
+}
+function togOpen(id,o){ro=o?[...new Set([...ro,id])]:ro.filter(x=>x!==id)}
+function mvRV(id,i,d){const c=def.find(x=>x.id===id),v=vis(c).map(x=>x.i),j=i+d;if(j<0||j>=v.length)return;[v[i],v[j]]=[v[j],v[i]];(vo[id]=vo[id]||{h:[]}).o=v;sv('vo',vo);openSet();render()}
+function delRV(id,v){const w=(vo[id]=vo[id]||{});w.h=[...(w.h||[]),v];sv('vo',vo);openSet();render()}
+function resRV(id){if(vo[id])vo[id].h=[];sv('vo',vo);openSet();render()}
+function togRec(id){hid=hid.includes(id)?hid.filter(x=>x!==id):[...hid,id];sv('hid',hid);openSet();render()}
 const EMO=['🎵','🔢','🐶','🐱','🐘','🦖','🚗','🚒','🍎','🌈','⭐','🎨','📚','🧸','🐟','🌳'];
 function editor(){
   let h=`<div class="cb"><b>카테고리 추가</b><div style="display:flex;gap:6px;margin-top:6px"><select id="ne" style="width:70px;margin:0">${EMO.map(e=>`<option>${e}</option>`).join('')}</select><input id="nn" placeholder="이름" style="margin:0"><button class="btn" onclick="addCat()">추가</button></div></div>`;
