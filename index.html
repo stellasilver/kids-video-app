@@ -37,8 +37,11 @@ button{font:inherit;cursor:pointer}
 .box h2{margin:0 0 12px;font-size:18px}
 .box input,.box select{width:100%;padding:10px;font-size:15px;border:1px solid #bcd;border-radius:10px;margin-bottom:8px}
 .tabs{display:flex;gap:6px;margin-bottom:12px}
-.tabs button{flex:1;padding:9px;border:0;border-radius:10px;background:#e3efe6}
+.tabs button{flex:1;padding:16px 4px;min-height:58px;font-size:15px;font-weight:bold;line-height:1.25;border:0;border-radius:12px;background:#e3efe6}
 .tabs .on{background:var(--pri);color:#fff}
+.sub{display:flex;gap:6px;margin:4px 0 10px}
+.sub button{padding:5px 12px;font-size:13px;border:1px solid #9cc7aa;border-radius:999px;background:#fff;color:#2F6B47}
+.sub .on{background:#2F8F5B;border-color:#2F8F5B;color:#fff}
 .btn{border:0;border-radius:10px;padding:9px 14px;background:var(--pri);color:#fff;font-size:14px}
 .btn.g{background:#e3efe6;color:var(--ink)}.btn.r{background:#e65c5c}
 .row{display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid #eef3ef;font-size:14px}
@@ -53,12 +56,12 @@ button{font:inherit;cursor:pointer}
 small{color:#5b7a64}
 </style></head><body>
 <div id="app">
- <div id="side"><div id="cats"></div><div id="tm" onclick="gate(()=>openSet('t'))"></div></div>
- <div id="main"><div id="grid"></div><button id="gear" onclick="gate(()=>openSet('t'))">⚙</button></div>
+ <div id="side"><div id="cats"></div><div id="tm" onclick="gate(()=>openSet('m'))"></div></div>
+ <div id="main"><div id="grid"></div><button id="gear" onclick="gate(()=>openSet('m'))">⚙</button></div>
 </div>
 <div id="pl" class="ov"><button id="back" onclick="leave()">← 돌아가기</button><div id="yt"></div>
  <div id="end"><div style="font-size:60px">🎉</div><div>영상이 끝났어요!</div><button class="big" onclick="leave()">다른 영상 보러 가기</button><div style="font-size:15px;font-weight:normal;opacity:.85">안 누르면 2초 뒤에 자동으로 돌아가요</div></div></div>
-<div id="lim" class="ov"><div style="font-size:80px">🌙</div><h1>오늘은 여기까지!</h1><div>내일 또 만나요 👋</div><button onclick="gate(()=>openSet('t'))">부모님</button></div>
+<div id="lim" class="ov"><div style="font-size:80px">🌙</div><h1>오늘은 여기까지!</h1><div>내일 또 만나요 👋</div><button onclick="gate(()=>openSet('m'))">부모님</button></div>
 <div id="mod" class="ov md"><div class="box" id="box"></div></div>
 
 <script>
@@ -67,7 +70,7 @@ const ld=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}ca
 const sv=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const SEED=[{id:'ss',e:'🎵',n:'슈심송',v:[{i:'BTlmy8LZO_8',t:'10 Apples On My Head'}]},{id:'nb',e:'🔢',n:'넘버블럭스',v:[]}];
-let def=SEED,mine=ld('mine',[]),hist=ld('hist',[]),hp='0',sess=null,endT=null,lim=ld('lim',0),use=ld('use',{}),cur=null,E=null,tab='t',P=null,timer=null,ytReady=false;
+let def=SEED,mine=ld('mine',[]),hist=ld('hist',[]),hp='0',sess=null,endT=null,lim=ld('lim',0),use=ld('use',{}),cur=null,E=null,tab='m',P=null,timer=null,ytReady=false;
 const today=()=>new Date().toLocaleDateString('sv');
 const used=()=>use[today()]||0;
 const full=()=>lim>0&&used()>=lim*60;
@@ -100,7 +103,7 @@ const closeMod=()=>{$('#mod').style.display='none';render()};
 /* 설정 */
 function openSet(t){
   tab=t||tab;
-  const tabs=[['t','시청 시간'],['h','시청 기록'],['m','내 목록']];
+  const tabs=[['m','영상 목록<br>(링크 추가)'],['t','시청 시간'],['h','시청 기록']];
   let h=`<h2>⚙ 부모님 설정</h2><div class="tabs">${tabs.map(x=>`<button class="${tab===x[0]?'on':''}" onclick="openSet('${x[0]}')">${x[1]}</button>`).join('')}</div>`;
   if(tab==='t'){
     h+=`<p>하루 시청 한도 (5분 단위)</p><div class="step"><button onclick="setLim(${lim-5})">−</button><b>${lim?lim+'분':'제한 없음'}</b><button onclick="setLim(${lim+5})">＋</button></div>
@@ -147,7 +150,7 @@ function histHtml(){
   const L=hist.filter(x=>hp==='all'||(hp==='0'?x.d===t:x.d>=w)),g={};
   L.forEach(x=>{const o=g[x.i]||(g[x.i]={t:x.t,n:0,s:0});o.n++;o.s+=x.s});
   const rows=Object.values(g).sort((a,b)=>b.s-a.s),tot=L.reduce((a,x)=>a+x.s,0);
-  return `<div class="tabs">${[['0','오늘'],['7','최근 7일'],['all','전체']].map(p=>`<button class="${hp===p[0]?'on':''}" onclick="hp='${p[0]}';openSet('h')">${p[1]}</button>`).join('')}</div><p>총 <b>${fmt2(tot)}</b> · ${L.length}번 시청</p>`+(rows.length?rows.map(r=>`<div class="row"><span>${esc(r.t)}</span><b>${r.n}회</b><small>${fmt2(r.s)}</small></div>`).join(''):'<small>기록이 없어요 (15초 이상 본 영상만 기록돼요)</small>')+`<div style="display:flex;gap:6px;margin-top:10px"><button class="btn" onclick="csv()">CSV 내보내기</button><button class="btn r" onclick="if(confirm('시청 기록을 모두 지울까요?')){hist=[];sv('hist',hist);openSet('h')}">기록 지우기</button></div>`;
+  return `<div class="sub">${[['0','오늘'],['7','최근 7일'],['all','전체']].map(p=>`<button class="${hp===p[0]?'on':''}" onclick="hp='${p[0]}';openSet('h')">${p[1]}</button>`).join('')}</div><p>총 <b>${fmt2(tot)}</b> · ${L.length}번 시청</p>`+(rows.length?rows.map(r=>`<div class="row"><span>${esc(r.t)}</span><b>${r.n}회</b><small>${fmt2(r.s)}</small></div>`).join(''):'<small>기록이 없어요 (15초 이상 본 영상만 기록돼요)</small>')+`<div style="display:flex;gap:6px;margin-top:10px"><button class="btn" onclick="csv()">CSV 내보내기</button><button class="btn r" onclick="if(confirm('시청 기록을 모두 지울까요?')){hist=[];sv('hist',hist);openSet('h')}">기록 지우기</button></div>`;
 }
 function csv(){
   const r=['날짜,제목,영상ID,시청초',...hist.map(x=>[x.d,'"'+x.t.replace(/"/g,'""')+'"',x.i,x.s].join(','))];
