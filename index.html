@@ -92,10 +92,10 @@ function render(){
 
 /* 부모 확인: 더하기 문제 */
 function gate(ok){
-  const a=10+Math.floor(Math.random()*90),b=10+Math.floor(Math.random()*90);
-  $('#box').innerHTML=`<h2>부모님 확인</h2><p style="font-size:26px;text-align:center;margin:8px 0">${a} + ${b} = ?</p><input id="ans" type="number" inputmode="numeric" placeholder="정답 입력"><div id="gm" style="color:#d33;min-height:20px"></div><div style="display:flex;gap:8px"><button class="btn g" style="flex:1" onclick="closeMod()">취소</button><button class="btn" style="flex:1" id="go">확인</button></div>`;
+  let a=1+Math.floor(Math.random()*9),b=1+Math.floor(Math.random()*9);const sub=Math.random()<.5;if(sub&&a<b)[a,b]=[b,a];const r=sub?a-b:a+b;
+  $('#box').innerHTML=`<h2>부모님 확인</h2><p style="font-size:26px;text-align:center;margin:8px 0">${a} ${sub?'−':'+'} ${b} = ?</p><input id="ans" type="number" inputmode="numeric" placeholder="정답 입력"><div id="gm" style="color:#d33;min-height:20px"></div><div style="display:flex;gap:8px"><button class="btn g" style="flex:1" onclick="closeMod()">취소</button><button class="btn" style="flex:1" id="go">확인</button></div>`;
   $('#mod').style.display='flex';
-  $('#go').onclick=()=>{if(+$('#ans').value===a+b){ok()}else{$('#gm').textContent='다시 풀어보세요';$('#ans').value=''}};
+  $('#go').onclick=()=>{if($('#ans').value!==''&&+$('#ans').value===r){ok()}else{$('#gm').textContent='다시 풀어보세요';$('#ans').value=''}};
   setTimeout(()=>$('#ans').focus(),50);
 }
 const closeMod=()=>{$('#mod').style.display='none';render()};
