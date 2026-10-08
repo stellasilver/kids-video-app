@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>우리 아이 영상</title>
+<style>
+:root{--bg:#EAF6EC;--side:#CFE8D5;--pri:#4CAF7A;--dk:#2F8F5B;--ink:#2B3A30}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:-apple-system,"Malgun Gothic",sans-serif;overflow:hidden}
+button{font:inherit;cursor:pointer}
+#app{display:flex;height:100%}
+#side{width:84px;background:var(--side);display:flex;flex-direction:column;flex-shrink:0}
+#cats{flex:1;overflow-y:auto;padding-top:14px;display:flex;flex-direction:column;align-items:center;gap:6px}
+.cat{width:100%;display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px 2px;cursor:pointer}
+.cat i{font-style:normal;width:48px;height:48px;border-radius:24px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:26px}
+.cat.on i{background:var(--pri);border:3px solid var(--dk)}
+.cat b{font-size:12px;max-width:76px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#tm{padding:8px 4px 12px;text-align:center;font-size:12px;font-weight:bold}
+#main{flex:1;position:relative;overflow:hidden;display:flex;flex-direction:column}
+#grid{flex:1;overflow-y:auto;padding:10px 10px 70px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;align-content:start}
+@media(orientation:portrait){#grid{grid-template-columns:repeat(2,1fr)}}
+.vc{background:#fff;border-radius:16px;padding:8px;cursor:pointer}
+.vc img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px;background:#ddd}
+.vc p{margin:6px 0 0;font-size:14px;text-align:center;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+#empty{grid-column:1/-1;text-align:center;padding:40px 10px;color:#5b7a64}
+#gear{position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:18px;border:0;background:rgba(255,255,255,.6);opacity:.6;font-size:17px}
+.ov{position:fixed;inset:0;z-index:50;display:none}
+#pl{background:#10281a}
+#yt,#yt iframe{width:100%;height:100%;border:0}
+#back{position:absolute;top:12px;left:12px;z-index:51;background:rgba(255,255,255,.9);border:0;border-radius:12px;padding:8px 16px;font-size:15px}
+#end{position:absolute;inset:0;z-index:52;background:#10281a;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:#fff;font-size:22px;font-weight:bold}
+.big{font-size:18px;padding:16px 34px;border:0;border-radius:18px;background:var(--pri);color:#fff;font-weight:bold}
+#lim{background:#FFE57A;z-index:80;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;color:#5a4a00}
+#lim h1{font-size:34px;margin:0}
+#lim button{border:0;border-radius:14px;padding:12px 22px;background:rgba(0,0,0,.12);color:#5a4a00;font-size:15px}
+.md{background:rgba(0,0,0,.45);z-index:100;align-items:center;justify-content:center}
+.box{background:#fff;border-radius:18px;padding:20px;width:92%;max-width:520px;max-height:88vh;overflow-y:auto}
+.box h2{margin:0 0 12px;font-size:18px}
+.box input,.box select{width:100%;padding:10px;font-size:15px;border:1px solid #bcd;border-radius:10px;margin-bottom:8px}
+.tabs{display:flex;gap:6px;margin-bottom:12px}
+.tabs button{flex:1;padding:9px;border:0;border-radius:10px;background:#e3efe6}
+.tabs .on{background:var(--pri);color:#fff}
+.btn{border:0;border-radius:10px;padding:9px 14px;background:var(--pri);color:#fff;font-size:14px}
+.btn.g{background:#e3efe6;color:var(--ink)}.btn.r{background:#e65c5c}
+.row{display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid #eef3ef;font-size:14px}
+.row span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row button{border:0;background:#e3efe6;border-radius:8px;padding:5px 9px}
+.cb{background:#f4faf5;border-radius:12px;padding:10px;margin-bottom:10px}
+.cb h3{margin:0 0 6px;font-size:15px;display:flex;gap:6px;align-items:center}
+.cb h3 span{flex:1}
+.step{display:flex;gap:8px;align-items:center;justify-content:center;margin:10px 0}
+.step b{font-size:26px;min-width:120px;text-align:center}
+.step button{width:48px;height:48px;border-radius:24px;border:0;background:var(--pri);color:#fff;font-size:24px}
+small{color:#5b7a64}
+</style></head><body>
+<div id="app">
+ <div id="side"><div id="cats"></div><div id="tm" onclick="gate(()=>openSet('t'))"></div></div>
+ <div id="main"><div id="grid"></div><button id="gear" onclick="gate(()=>openSet('t'))">⚙</button></div>
+</div>
+<div id="pl" class="ov"><button id="back" onclick="leave()">← 돌아가기</button><div id="yt"></div>
+ <div id="end"><div style="font-size:60px">🎉</div><div>영상이 끝났어요!</div><button class="big" onclick="leave()">다른 영상 보러 가기</button></div></div>
+<div id="lim" class="ov"><div style="font-size:80px">🌙</div><h1>오늘은 여기까지!</h1><div>내일 또 만나요 👋</div><button onclick="gate(()=>openSet('t'))">부모님</button></div>
+<div id="mod" class="ov md"><div class="box" id="box"></div></div>
+
+<script>
+const $=s=>document.querySelector(s);
+const ld=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}};
+const sv=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const SEED=[{id:'ss',e:'🎵',n:'슈심송',v:[{i:'BTlmy8LZO_8',t:'10 Apples On My Head'}]},{id:'nb',e:'🔢',n:'넘버블럭스',v:[]}];
+let def=SEED,mine=ld('mine',[]),adm=ld('adm',null),isAdm=ld('isAdm',false),lim=ld('lim',0),use=ld('use',{}),cur=null,E=null,tab='t',P=null,timer=null,ytReady=false;
+const today=()=>new Date().toLocaleDateString('sv');
+const used=()=>use[today()]||0;
+const full=()=>lim>0&&used()>=lim*60;
+const D=()=>isAdm&&adm?adm:def;
+const all=()=>[...D().map(c=>({...c,pub:1})),...mine];
+const vidId=s=>{const m=String(s).match(/(?:v=|youtu\.be\/|shorts\/|embed\/|live\/)([\w-]{11})/);return m?m[1]:null};
+const fmt=s=>Math.floor(s/60)+'분';
+
+fetch('default-categories.json?'+Date.now()).then(r=>r.json()).then(d=>{if(Array.isArray(d)){def=d;render()}}).catch(()=>{});
+
+function render(){
+  const cs=all();
+  if(!cs.find(c=>c.id===cur))cur=cs[0]?cs[0].id:null;
+  $('#cats').innerHTML=cs.map(c=>`<div class="cat ${c.id===cur?'on':''}" onclick="cur='${c.id}';render()"><i>${esc(c.e)}</i><b>${esc(c.n)}</b></div>`).join('');
+  const c=cs.find(x=>x.id===cur);
+  $('#grid').innerHTML=c&&c.v.length?c.v.map(v=>`<div class="vc" onclick="location.hash='#/w/${v.i}'"><img src="https://img.youtube.com/vi/${v.i}/hqdefault.jpg" alt=""><p>${esc(v.t)}</p></div>`).join(''):'<div id="empty">아직 영상이 없어요.<br><small>⚙ 에서 영상을 추가해 보세요</small></div>';
+  $('#tm').innerHTML='⏱ '+fmt(used())+(lim?' / '+lim+'분':'');
+  $('#lim').style.display=full()?'flex':'none';
+}
+
+/* 부모 확인: 더하기 문제 */
+function gate(ok){
+  const a=10+Math.floor(Math.random()*90),b=10+Math.floor(Math.random()*90);
+  $('#box').innerHTML=`<h2>부모님 확인</h2><p style="font-size:26px;text-align:center;margin:8px 0">${a} + ${b} = ?</p><input id="ans" type="number" inputmode="numeric" placeholder="정답 입력"><div id="gm" style="color:#d33;min-height:20px"></div><div style="display:flex;gap:8px"><button class="btn g" style="flex:1" onclick="closeMod()">취소</button><button class="btn" style="flex:1" id="go">확인</button></div>`;
+  $('#mod').style.display='flex';
+  $('#go').onclick=()=>{if(+$('#ans').value===a+b){ok()}else{$('#gm').textContent='다시 풀어보세요';$('#ans').value=''}};
+  setTimeout(()=>$('#ans').focus(),50);
+}
+const closeMod=()=>{$('#mod').style.display='none';render()};
+
+/* 설정 */
+function openSet(t){
+  tab=t||tab;
+  const tabs=[['t','시청 시간'],['m','내 목록'],['a','관리자']];
+  let h=`<h2>⚙ 부모님 설정</h2><div class="tabs">${tabs.map(x=>`<button class="${tab===x[0]?'on':''}" onclick="openSet('${x[0]}')">${x[1]}</button>`).join('')}</div>`;
+  if(tab==='t'){
+    h+=`<p>하루 시청 한도 (5분 단위)</p><div class="step"><button onclick="setLim(${lim-5})">−</button><b>${lim?lim+'분':'제한 없음'}</b><button onclick="setLim(${lim+5})">＋</button></div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:10px">${[0,15,30,45,60,90].map(m=>`<button class="btn g" onclick="setLim(${m})">${m?m+'분':'없음'}</button>`).join('')}</div>
+    <p>오늘 본 시간: <b>${fmt(used())}</b> <button class="btn g" onclick="use[today()]=0;sv('use',use);openSet()">오늘 시간 초기화</button></p>`;
+  }else if(tab==='m'){E={list:mine,save:()=>sv('mine',mine)};h+=editor(false)}
+  else{
+    h+=`<label class="row"><input type="checkbox" style="width:auto;margin:0" ${isAdm?'checked':''} onchange="togAdm(this.checked)"> <span>관리자 모드 (공용 카테고리 편집)</span></label>`;
+    if(isAdm){if(!adm)adm=JSON.parse(JSON.stringify(def));E={list:adm,save:()=>sv('adm',adm)};
+      h+=`<small>수정 후 [파일 내려받기] → GitHub 저장소의 default-categories.json 을 교체 업로드하면 모두에게 반영돼요.</small><div style="display:flex;gap:6px;margin:8px 0"><button class="btn" onclick="exp()">파일 내려받기</button><button class="btn g" onclick="if(confirm('편집 중인 내용을 지우고 서버 파일로 되돌릴까요?')){adm=null;localStorage.removeItem('adm');openSet()}">되돌리기</button></div>`+editor(true)}
+    else h+='<small>켜면 공용(대표) 카테고리를 편집할 수 있어요. 이 기기에서만 켜지고, 파일을 올려야 모두에게 보여요.</small>';
+  }
+  h+=`<div style="margin-top:12px"><button class="btn" style="width:100%" onclick="closeMod()">닫기</button></div>`;
+  $('#box').innerHTML=h;$('#mod').style.display='flex';
+}
+function setLim(m){lim=Math.max(0,Math.min(300,m));sv('lim',lim);openSet()}
+function togAdm(v){isAdm=v;sv('isAdm',v);openSet()}
+const EMO=['🎵','🔢','🐶','🐱','🐘','🦖','🚗','🚒','🍎','🌈','⭐','🎨','📚','🧸','🐟','🌳'];
+function editor(pub){
+  let h=`<div class="cb"><b>카테고리 추가</b><div style="display:flex;gap:6px;margin-top:6px"><select id="ne" style="width:70px;margin:0">${EMO.map(e=>`<option>${e}</option>`).join('')}</select><input id="nn" placeholder="이름" style="margin:0"><button class="btn" onclick="addCat()">추가</button></div></div>`;
+  E.list.forEach((c,ci)=>{
+    h+=`<div class="cb"><h3><span>${esc(c.e)} ${esc(c.n)}</span><button class="btn g" onclick="mvC(${ci},-1)">↑</button><button class="btn g" onclick="mvC(${ci},1)">↓</button><button class="btn g" onclick="renC(${ci})">이름</button><button class="btn r" onclick="delC(${ci})">삭제</button></h3>`;
+    c.v.forEach((v,vi)=>{h+=`<div class="row"><span>${esc(v.t)}</span><button onclick="mvV(${ci},${vi},-1)">↑</button><button onclick="mvV(${ci},${vi},1)">↓</button><button onclick="delV(${ci},${vi})">✕</button></div>`});
+    h+=`<textarea id="L${ci}" rows="2" placeholder="유튜브 링크 (여러 개는 줄바꿈으로)" style="width:100%;margin-top:6px;border:1px solid #bcd;border-radius:10px;padding:8px;font:inherit"></textarea><button class="btn" style="margin-top:4px" onclick="addV(${ci},this)">영상 추가</button></div>`;
+  });
+  return h;
+}
+const upd=()=>{E.save();openSet();render()};
+function addCat(){const n=$('#nn').value.trim();if(!n)return;E.list.push({id:'c'+Date.now(),e:$('#ne').value,n,v:[]});upd()}
+function renC(i){const n=prompt('새 이름',E.list[i].n);if(n&&n.trim()){E.list[i].n=n.trim();upd()}}
+function delC(i){if(confirm('이 카테고리와 영상을 모두 삭제할까요?')){E.list.splice(i,1);upd()}}
+function mv(a,i,d){const j=i+d;if(j<0||j>=a.length)return;[a[i],a[j]]=[a[j],a[i]];upd()}
+const mvC=(i,d)=>mv(E.list,i,d),mvV=(c,i,d)=>mv(E.list[c].v,i,d);
+function delV(c,i){E.list[c].v.splice(i,1);upd()}
+async function addV(ci,btn){
+  const ids=[...new Set(($('#L'+ci).value.match(/https?:\/\/\S+/g)||[]).map(vidId).filter(Boolean))];
+  if(!ids.length){alert('올바른 유튜브 링크가 없어요');return}
+  btn.disabled=true;btn.textContent='가져오는 중...';
+  for(const i of ids){
+    let t='영상 '+i.slice(0,4);
+    try{const r=await fetch('https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v='+i+'&format=json');t=(await r.json()).title||t}catch(e){}
+    if(!E.list[ci].v.some(v=>v.i===i))E.list[ci].v.push({i,t});
+  }
+  upd();
+}
+function exp(){
+  const b=new Blob([JSON.stringify(adm||def,null,1)],{type:'application/json'}),a=document.createElement('a');
+  a.href=URL.createObjectURL(b);a.download='default-categories.json';a.click();
+}
+
+/* 재생 페이지 */
+function loadYT(cb){
+  if(window.YT&&YT.Player){cb();return}
+  window.onYouTubeIframeAPIReady=cb;
+  const s=document.createElement('script');s.src='https://www.youtube.com/iframe_api';document.head.appendChild(s);
+}
+function watch(id){
+  if(full()){location.hash='#/';return}
+  $('#pl').style.display='block';$('#end').style.display='none';
+  $('#pl').insertAdjacentHTML('beforeend','');
+  if(!$('#yt')){const d=document.createElement('div');d.id='yt';$('#pl').insertBefore(d,$('#end'))}
+  loadYT(()=>{
+    P=new YT.Player('yt',{videoId:id,playerVars:{rel:0,playsinline:1,modestbranding:1,autoplay:1},events:{onStateChange:e=>{if(e.data===0){$('#end').style.display='flex'}}}});
+  });
+  clearInterval(timer);let n=0;
+  timer=setInterval(()=>{
+    if(P&&P.getPlayerState&&P.getPlayerState()===1){
+      use[today()]=used()+1;if(++n%5===0)sv('use',use);
+      if(full()){sv('use',use);try{P.pauseVideo()}catch(e){}stop();render()}
+    }
+  },1000);
+}
+function stop(){
+  clearInterval(timer);sv('use',use);
+  try{P&&P.destroy()}catch(e){}P=null;
+  const y=$('#yt');if(y)y.remove();
+  $('#pl').style.display='none';$('#end').style.display='none';
+}
+function leave(){location.hash='#/'}
+function route(){
+  const m=location.hash.match(/^#\/w\/([\w-]{11})/);
+  stop();
+  if(m)watch(m[1]);
+  render();
+}
+addEventListener('hashchange',route);
+route();
+</script></body></html>
